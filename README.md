@@ -9,4 +9,4 @@ the output report is a html file that will be automatically opend upon completio
 
 Raw version of the bash script is availble for validation
 
-Full app can be found here
+Full app can be found [here](https://github.com/jamf/Jamf-Environment-Test/releases/latest)
