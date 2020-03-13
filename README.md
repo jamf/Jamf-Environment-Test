@@ -18,3 +18,5 @@ Raw version of the bash script is availble for validation
 Full app can be found [here](https://github.com/jamf/Jamf-Environment-Test/releases/latest)
 
 How to use Wiki can be found on the [Wiki](https://github.com/jamf/Jamf-Environment-Test/wiki)
+
+_Note: this tool is open source and is not supported but the Jamf support team_
