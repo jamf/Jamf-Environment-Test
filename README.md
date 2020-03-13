@@ -1,5 +1,8 @@
 # Jamf-Environment-Test
+![Jet Logo](/images/Jet_Icon.png)
+
 Utility for testing an environment for success with Apple Devices
+
 
 This application is deisgned to run on a macOS device
 
