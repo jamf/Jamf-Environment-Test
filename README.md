@@ -19,4 +19,13 @@ Full app can be found [here](https://github.com/jamf/Jamf-Environment-Test/relea
 
 How to use Wiki can be found on the [Wiki](https://github.com/jamf/Jamf-Environment-Test/wiki)
 
+## Important
+when downloading with Chrome you may see the following error 
+
+![Dangerous](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous.png)
+
+This is expected due to Google Chromes security, to proceed with the download click the arrow and then Keep
+
+![Dangerous Keep](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous_keep.png)
+
 _Note: this tool is open source and is not supported but the Jamf support team_
