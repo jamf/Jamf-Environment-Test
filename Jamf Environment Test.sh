@@ -118,6 +118,8 @@ APPLE_URL_ARRAY=(
   
   #Content Caching
   "lcdn-registration.apple.com,443,TCP,Content Caching"
+  "lcdn-locator.apple.com,80,TCP"
+  "lcdn-locator.apple.com,443,TCP"
   
   #Certificate validation
   "crl.apple.com,80,TCP,Certificate Validation Hosting"
@@ -317,9 +319,6 @@ function CalculateHostInfoTables () {
     # Now print the info for this host...
     # Set NC flags for TCP vs UDP
     if [[ $PROTOCOL == "TCP" ]]; then
-#       AVAILBILITY=$(/usr/bin/nc -z -G 1 $URL $PORT 2>&1)
-# nc -v -z -w 3 itunes.apple.com 443 &> /dev/null && echo "Online" || echo "Offline"
-        # -- run command if fails to complete in 3 secs assume host unreachable --
         ( nc -z -w 3 ${URL} ${PORT} >/dev/null 2>&1 ) & pid=$!
         ( sleep 3 && kill -HUP $pid ) 2>/dev/null & watcher=$!
         if wait $pid 2>/dev/null; then
@@ -331,9 +330,7 @@ function CalculateHostInfoTables () {
             # -- command failed (no connection) --
             AVAILBILITY=""
         fi
-    else    
-#       AVAILBILITY=$(/usr/bin/nc -zu -w 1 $URL $PORT 2>&1)
-        # -- run command if fails to complete in 3 secs assume host unreachable --
+    else
         ( nc -zu -w 3 ${URL} ${PORT} >/dev/null 2>&1 ) & pid=$!
         ( sleep 3 && kill -HUP $pid ) 2>/dev/null & watcher=$!
         if wait $pid 2>/dev/null; then
