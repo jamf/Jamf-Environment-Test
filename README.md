@@ -1,5 +1,5 @@
 # Jamf-Environment-Test
-![Jet Logo](/images/Jet_Icon.png)
+![Jet Logo](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/Jet_Icon.png)
 
 Utility for testing an environment for success with Apple Devices
 
