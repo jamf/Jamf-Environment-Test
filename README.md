@@ -24,7 +24,7 @@ when downloading with Chrome you may see the following error
 
 ![Dangerous](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous.png)
 
-This is expected due to Google Chromes security, to proceed with the download click the arrow and then Keep
+This is expected due to Google Chrome's security, to proceed with the download click the arrow and then Keep
 
 ![Dangerous Keep](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous_keep.png)
 
