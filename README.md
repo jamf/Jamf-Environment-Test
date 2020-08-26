@@ -28,4 +28,4 @@ This is expected due to Google Chrome's security, to proceed with the download c
 
 ![Dangerous Keep](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous_keep.png)
 
-_Note: this tool is open source and is not supported but the Jamf support team_
+_Note: this tool is open source and is not supported by the Jamf support team_
