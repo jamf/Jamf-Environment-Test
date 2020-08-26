@@ -30,7 +30,7 @@
 # written by Daniel MacLaughlin and Oliver Lindsey, March 2020
 # https://github.com/jamf/Jamf-Environment-Test
 
-#Version 1.2
+#Version 1.3
 
 #########################################################################################
 # General Information
@@ -44,7 +44,7 @@
 #category is only required for the first of each section to allow for formatting of the html
 
 APPLE_URL_ARRAY=(
-	#Device Setup
+	#Device setup
 	"albert.apple.com,443,TCP,Device Setup Hosts"
 	"captive.apple.com,80,TCP"
 	"captive.apple.com,443,TCP"
@@ -76,6 +76,7 @@ APPLE_URL_ARRAY=(
 	"identity.apple.com,443,TCP"
 	"iprofiles.apple.com,443,TCP"
 	"mdmenrollment.apple.com,443,TCP"
+	"setup.icloud.com","443","TCP"
 	"vpp.itunes.apple.com,443,TCP"
 	
 	#Software updates
@@ -102,7 +103,6 @@ APPLE_URL_ARRAY=(
 	"swpost.apple.com,80,TCP"
 	"swscan.apple.com,443,TCP"
 	"updates-http.cdn-apple.com,80,TCP"
-# This one doesn't seem to exist... "updates.apple.com,443,TCP"
 	"updates.cdn-apple.com,443,TCP"
 	"xp.apple.com,443,TCP"
 
@@ -111,7 +111,7 @@ APPLE_URL_ARRAY=(
 	"ns.itunes.apple.com,443,TCP"
 	"init.itunes.apple.com,443,TCP"
 	"apps.apple.com,443,TCP"
-	"mzstatic.com,443,TCP"
+	"s.mzstatic.com,443,TCP"
 	"ppq.apple.com,443,TCP"
 	
 	#Content Caching
@@ -132,6 +132,8 @@ APPLE_URL_ARRAY=(
 	"www.jamfcloud.com,443,TCP"
 	"use1-jcdsdownloads.services.jamfcloud.com,443,TCP"
 	"use1-jcds.services.jamfcloud.com,443,TCP"
+	"euc1-jcdsdownloads.services.jamfcloud.com,443,TCP"
+	"euc1-jcds.services.jamfcloud.com,443,TCP"
 	"euw2-jcdsdownloads.services.jamfcloud.com,443,TCP"
 	"euw2-jcds.services.jamfcloud.com,443,TCP"
 	"apse2-jcdsdownloads.services.jamfcloud.com,443,TCP"
@@ -213,7 +215,7 @@ function GenerateReportHTML () {
 		<p>Date: $(/bin/date +"%a %d %b %Y %R")</p>
 
 		<h2>Client Details</h2>
-		<p>Computer Name: $(/usr/sbin/scutil --get ComputerName)</p>
+		<p>Computer Name: $(/usr/sbin/scutil --get ComputerName | /usr/bin/sed 's/’//')</p>
 		<p>macOS Model: $(/usr/sbin/sysctl -n hw.model)</p>
 		<p>macOS Version: $(/usr/bin/sw_vers -productVersion), $(/usr/bin/awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | /usr/bin/awk -F 'macOS ' '{print $NF}' | /usr/bin/tr -d '\\') build $(/usr/bin/sw_vers -buildVersion)</p>
 
@@ -486,12 +488,19 @@ function CalculateHostInfoTables () {
 			lastCategory="${CATEGORY}"
 			HOST_TEST_TABLES+="    <h3>${CATEGORY}</h3>${NL}"
 			HOST_TEST_TABLES+="    <table class=\"tg\">${NL}"
-			HOST_TEST_TABLES+="      <tr><th width=\"50%\">HOSTNAME</th><th width=\"10%\">Port</th><th width=\"10%\">Protocol</th><th width=\"10%\">Accesible</th><th width=\"20%\">SSL Error</th></tr>${NL}"
+			HOST_TEST_TABLES+="      <tr><th width=\"30%\">HOSTNAME</th><th width=\"30%\">Reverse DNS</th><th width=\"10%\">IP Address</th><th width=\"10%\">Port</th><th width=\"10%\">Protocol</th><th width=\"10%\">Accessible</th><th width=\"20%\">SSL Error</th></tr>${NL}"
 		fi # End of table start and end logic.
 
 		echo "  > Checking connectivity to : ${HOSTNAME}"
 
 		# Now print the info for this host...
+		#Perform Host nslookup to get reported IP
+		IP_ADDRESS=$(/usr/bin/nslookup ${HOSTNAME} | /usr/bin/grep "Address:" | /usr/bin/awk '{print$2}' | /usr/bin/tail -1)
+		
+		
+		#Get Reverse DNS record
+		REVERSE_DNS=$(/usr/bin/dig -x ${IP_ADDRESS} +short | /usr/bin/sed 's/.$//')
+		
 		# Using nc, if proxy defined then adding in proxy flag
 		if [[ ${PROTOCOL} == "TCP" ]]; then
 			#Check if Proxy set
@@ -560,7 +569,7 @@ function CalculateHostInfoTables () {
 		fi
 
 		# Done. Stick the row of info into the HTML var...
-		HOST_TEST_TABLES+="        <tr><td>${HOSTNAME}</td><td>${PORT}</td><td>${PROTOCOL}</td>${AVAILBILITY_STATUS}${SSL_STATUS}</tr>${NL}"
+		HOST_TEST_TABLES+="        <tr><td>${HOSTNAME}</td><td>${REVERSE_DNS}</td><td>${IP_ADDRESS}</td><td>${PORT}</td><td>${PROTOCOL}</td>${AVAILBILITY_STATUS}${SSL_STATUS}</tr>${NL}"
 	done
 	# Close up the html for the final table
 	HOST_TEST_TABLES+="    </table>${NL}"
@@ -704,7 +713,7 @@ function calculateAdditionalChecks () {
 		fi
 	
 	#Content Cache report
-	CONTENT_CACHE_CHECK=$(/usr/bin/AssetCacheLocatorUtil 2>&1 | /usr/bin/grep "guid" | /usr/bin/awk '{print$4}' | /usr/bin/sed 's/,//'| /usr/bin/sed -e 's/^\(.*\):.*$/\1/' -e 's/^/,/' | /usr/bin/sort -u)
+	CONTENT_CACHE_CHECK=$(/usr/bin/AssetCacheLocatorUtil 2>&1 | /usr/bin/grep "guid" | /usr/bin/awk '{print$4}' | /usr/bin/sed -e 's/^\(.*\):.*$/\1/' -e 's/^/,/' | /usr/bin/sort -u | /usr/bin/sed 's/,//')
 		if [[ -z ${CONTENT_CACHE_CHECK} ]];then
 			CONTENT_CACHE_STATUS='<td style="color: black;">None</td>'
 		else
