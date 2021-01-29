@@ -1,7 +1,7 @@
 #!/bin/bash
 ####################################################################################################
 #
-# Copyright (c) 2020, Jamf, LLC.  All rights reserved.
+# Copyright (c) 2021, Jamf, LLC.  All rights reserved.
 #
 #       Redistribution and use in source and binary forms, with or without
 #       modification, are permitted provided that the following conditions are met:
@@ -30,14 +30,19 @@
 # written by Daniel MacLaughlin and Oliver Lindsey, March 2020
 # https://github.com/jamf/Jamf-Environment-Test
 
-#Version 1.3
+#Version 1.4 (Jan 2021)
 
 #########################################################################################
 # General Information
 #########################################################################################
 # This script is the raw version of the associated application
 # it is designed to query a list of Apple and Jamf Urls to connectivity errors
-
+#
+# In addition to the URL array there is also the option to import a text file of additional hosts
+# text fule must have the same strucutre as the urls below eg:
+# www.apple.com,443,TCP,Apple Example
+# www.microsoft.com,443,TCP
+#
 #Apple URLS from https://support.apple.com/en-us/HT210060
 #Format is HOSTNAME,port,protocol,category 
 #protocol options are TCP, UDP and TCP - non-proxied
@@ -52,14 +57,115 @@ APPLE_URL_ARRAY=(
 	"humb.apple.com,443,TCP"
 	"static.ips.apple.com,80,TCP"
 	"static.ips.apple.com,443,TCP"
+	"sq-device.apple.com,443,TCP"
 	"tbsc.apple.com,443,TCP"
 	"time-ios.apple.com,123,UDP"
 	"time.apple.com,123,UDP"
 	"time-macos.apple.com,123,UDP"
 
 	#Device Apple Push Notifications
-	"courier.push.apple.com,5223,TCP - non-proxied,Device Push Notification Hosts"
-	"courier.push.apple.com,443,TCP - non-proxied"
+	"1-courier.push.apple.com,5223,TCP - non-proxied,Device Push Notification Hosts"
+	"1-courier.push.apple.com,443,TCP - non-proxied"
+	"2-courier.push.apple.com,5223,TCP - non-proxied"
+	"2-courier.push.apple.com,443,TCP - non-proxied"
+	"3-courier.push.apple.com,5223,TCP - non-proxied"
+	"3-courier.push.apple.com,443,TCP - non-proxied"
+	"4-courier.push.apple.com,5223,TCP - non-proxied"
+	"4-courier.push.apple.com,443,TCP - non-proxied"
+	"5-courier.push.apple.com,5223,TCP - non-proxied"
+	"5-courier.push.apple.com,443,TCP - non-proxied"
+	"6-courier.push.apple.com,5223,TCP - non-proxied"
+	"6-courier.push.apple.com,443,TCP - non-proxied"
+	"7-courier.push.apple.com,5223,TCP - non-proxied"
+	"7-courier.push.apple.com,443,TCP - non-proxied"
+	"8-courier.push.apple.com,5223,TCP - non-proxied"
+	"8-courier.push.apple.com,443,TCP - non-proxied"
+	"9-courier.push.apple.com,5223,TCP - non-proxied"
+	"9-courier.push.apple.com,443,TCP - non-proxied"
+	"10-courier.push.apple.com,5223,TCP - non-proxied"
+	"10-courier.push.apple.com,443,TCP - non-proxied"
+	"11-courier.push.apple.com,5223,TCP - non-proxied"
+	"11-courier.push.apple.com,443,TCP - non-proxied"
+	"12-courier.push.apple.com,5223,TCP - non-proxied"
+	"12-courier.push.apple.com,443,TCP - non-proxied"
+	"13-courier.push.apple.com,5223,TCP - non-proxied"
+	"13-courier.push.apple.com,443,TCP - non-proxied"
+	"14-courier.push.apple.com,5223,TCP - non-proxied"
+	"14-courier.push.apple.com,443,TCP - non-proxied"
+	"15-courier.push.apple.com,5223,TCP - non-proxied"
+	"15-courier.push.apple.com,443,TCP - non-proxied"
+	"16-courier.push.apple.com,5223,TCP - non-proxied"
+	"16-courier.push.apple.com,443,TCP - non-proxied"
+	"17-courier.push.apple.com,5223,TCP - non-proxied"
+	"17-courier.push.apple.com,443,TCP - non-proxied"
+	"18-courier.push.apple.com,5223,TCP - non-proxied"
+	"18-courier.push.apple.com,443,TCP - non-proxied"
+	"19-courier.push.apple.com,5223,TCP - non-proxied"
+	"19-courier.push.apple.com,443,TCP - non-proxied"
+	"20-courier.push.apple.com,5223,TCP - non-proxied"
+	"20-courier.push.apple.com,443,TCP - non-proxied"
+	"21-courier.push.apple.com,5223,TCP - non-proxied"
+	"21-courier.push.apple.com,443,TCP - non-proxied"	
+	"22-courier.push.apple.com,5223,TCP - non-proxied"
+	"22-courier.push.apple.com,443,TCP - non-proxied"
+	"23-courier.push.apple.com,5223,TCP - non-proxied"
+	"23-courier.push.apple.com,443,TCP - non-proxied"
+	"24-courier.push.apple.com,5223,TCP - non-proxied"
+	"24-courier.push.apple.com,443,TCP - non-proxied"
+	"25-courier.push.apple.com,5223,TCP - non-proxied"
+	"25-courier.push.apple.com,443,TCP - non-proxied"
+	"26-courier.push.apple.com,5223,TCP - non-proxied"
+	"26-courier.push.apple.com,443,TCP - non-proxied"
+	"27-courier.push.apple.com,5223,TCP - non-proxied"
+	"27-courier.push.apple.com,443,TCP - non-proxied"
+	"28-courier.push.apple.com,5223,TCP - non-proxied"
+	"28-courier.push.apple.com,443,TCP - non-proxied"
+	"29-courier.push.apple.com,5223,TCP - non-proxied"
+	"29-courier.push.apple.com,443,TCP - non-proxied"
+	"30-courier.push.apple.com,5223,TCP - non-proxied"
+	"30-courier.push.apple.com,443,TCP - non-proxied"
+	"31-courier.push.apple.com,5223,TCP - non-proxied"
+	"31-courier.push.apple.com,443,TCP - non-proxied"
+	"32-courier.push.apple.com,5223,TCP - non-proxied"
+	"32-courier.push.apple.com,443,TCP - non-proxied"
+	"33-courier.push.apple.com,5223,TCP - non-proxied"
+	"33-courier.push.apple.com,443,TCP - non-proxied"
+	"34-courier.push.apple.com,5223,TCP - non-proxied"
+	"34-courier.push.apple.com,443,TCP - non-proxied"
+	"35-courier.push.apple.com,5223,TCP - non-proxied"
+	"35-courier.push.apple.com,443,TCP - non-proxied"
+	"36-courier.push.apple.com,5223,TCP - non-proxied"
+	"36-courier.push.apple.com,443,TCP - non-proxied"
+	"37-courier.push.apple.com,5223,TCP - non-proxied"
+	"37-courier.push.apple.com,443,TCP - non-proxied"
+	"38-courier.push.apple.com,5223,TCP - non-proxied"
+	"38-courier.push.apple.com,443,TCP - non-proxied"
+	"39-courier.push.apple.com,5223,TCP - non-proxied"
+	"39-courier.push.apple.com,443,TCP - non-proxied"
+	"40-courier.push.apple.com,5223,TCP - non-proxied"
+	"40-courier.push.apple.com,443,TCP - non-proxied"
+	"41-courier.push.apple.com,5223,TCP - non-proxied"
+	"41-courier.push.apple.com,443,TCP - non-proxied"
+	"42-courier.push.apple.com,5223,TCP - non-proxied"
+	"42-courier.push.apple.com,443,TCP - non-proxied"
+	"43-courier.push.apple.com,5223,TCP - non-proxied"
+	"43-courier.push.apple.com,443,TCP - non-proxied"
+	"44-courier.push.apple.com,5223,TCP - non-proxied"
+	"44-courier.push.apple.com,443,TCP - non-proxied"
+	"45-courier.push.apple.com,5223,TCP - non-proxied"
+	"45-courier.push.apple.com,443,TCP - non-proxied"
+	"46-courier.push.apple.com,5223,TCP - non-proxied"
+	"46-courier.push.apple.com,443,TCP - non-proxied"
+	"47-courier.push.apple.com,5223,TCP - non-proxied"
+	"47-courier.push.apple.com,443,TCP - non-proxied"
+	"48-courier.push.apple.com,5223,TCP - non-proxied"
+	"48-courier.push.apple.com,443,TCP - non-proxied"
+	"49-courier.push.apple.com,5223,TCP - non-proxied"
+	"49-courier.push.apple.com,443,TCP - non-proxied"
+	"50-courier.push.apple.com,5223,TCP - non-proxied"
+	"50-courier.push.apple.com,443,TCP - non-proxied"
+
+
 
 	#On-Prem Jamf Pro Push Notification Hosts
 	"gateway.push.apple.com,2195,TCP - non-proxied,On-Prem Jamf Pro Apple Push - Binary Protocol"
@@ -79,8 +185,21 @@ APPLE_URL_ARRAY=(
 	"setup.icloud.com","443","TCP"
 	"vpp.itunes.apple.com,443,TCP"
 	
+	#Apple School Manager and Apple Business Manager
+	"school.apple.com,443,TCP,Apple School Manager and Apple Business Manager"
+	"school.apple.com,80,TCP"
+	"ws.school.apple.com,443,TCP"
+	"ws-ee-maidsvc.icloud.com,443,TCP"
+	"ws-ee-maidsvc.icloud.com,80,TCP"
+	"business.apple.com,443,TCP"
+	"business.apple.com,80,TCP"
+	"ws.business.apple.com,443,TCP"
+	#"isu.apple.com,443,TCP"
+	#"isu.apple.com,80,TCP"
+	
 	#Software updates
 	"appldnld.apple.com,80,TCP,Software Updates Hosts"
+	"configuration.apple.com,443,TCP"
 	"gg.apple.com,80,TCP"
 	"gg.apple.com,443,TCP"
 	"gnf-mdn.apple.com,443,TCP"
@@ -108,14 +227,40 @@ APPLE_URL_ARRAY=(
 
 	#App Store
 	"itunes.apple.com,443,TCP,Apple App Store Hosts"
+	"itunes.apple.com,80,TCP"
+	"apps.apple.com,443,TCP"
+	"api.apps.apple.com,443,TCP"
+	"s.mzstatic.com,443,TCP"
+	"apps.mzstatic.com,443,TCP"
+	"ppq.apple.com,443,TCP"
 	"ns.itunes.apple.com,443,TCP"
 	"init.itunes.apple.com,443,TCP"
-	"apps.apple.com,443,TCP"
-	"s.mzstatic.com,443,TCP"
-	"ppq.apple.com,443,TCP"
+	"affiliate.itunes.apple.com,443,TCP"
+	"analytics.itunes.apple.com,443,TCP"
+
 	
 	#Content Caching
 	"lcdn-registration.apple.com,443,TCP,Content Caching"
+	"serverstatus.apple.com,443,TCP"
+	
+	#Apple Developer
+	"register.appattest.apple.com,443,TCP,Apple Developer"
+	"data.appattest.apple.com,443,TCP"
+	"register-development.appattest.apple.com,443,TCP"
+	"data-development.appattest.apple.com,443,TCP"
+	
+	#Feedback Assistant
+	"fba.apple.com,443,TCP,Feedback Assistant"
+	"cssubmissions.apple.com,443,TCP"
+	"bpapi.apple.com,443,TCP"
+	
+	#Apple diagnostics
+	"diagassets.apple.com,443,TCP,Apple diagnostics"
+	
+	#DNS Resolution
+	#currently unable to be validated for certificates due to openssl on macOS not supporting TLS 1.3
+	#"doh.dns.apple.com,443,TCP,Domain Name System resolution"
+	
 	
 	#Certificate validation
 	"crl.apple.com,80,TCP,Certificate Validation Hosting"
@@ -126,6 +271,7 @@ APPLE_URL_ARRAY=(
 	"ocsp.digicert.com,80,TCP"
 	"ocsp.entrust.net,80,TCP"
 	"ocsp.verisign.net,80,TCP"
+	"valid.apple.com,443,TCP"
 
 	#Jamf Hosts
 	"jamf.com,443,TCP,Jamf Services"
@@ -140,9 +286,70 @@ APPLE_URL_ARRAY=(
 	"apse2-jcds.services.jamfcloud.com,443,TCP"
 	"apne1-jcdsdownloads.services.jamfcloud.com,443,TCP"
 	"apne1-jcds.services.jamfcloud.com,443,TCP"
+	
+	#Jamf Protect Hosts
+	"a3bwx220ks5p1x-ats.iot.us-east-1.amazonaws.com,443,TCP,Jamf Protect"
+	"a3bwx220ks5p1x-ats.iot.us-east-1.amazonaws.com,8883,TCP"
+	"shared-jamf-jpt-generic-packages.s3.amazonaws.com,443,TCP"
+	"prod-use1-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.eu-west-2.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.eu-west-2.amazonaws.com,8883,TCP"
+	"prod-euw2-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.eu-central-1.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.eu-central-1.amazonaws.com,8883,TCP"
+	"prod-euc1-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.ap-northeast-1.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.ap-northeast-1.amazonaws.com,8883,TCP"
+	"prod-apne1-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.ap-southeast-2.amazonaws.com,443,TCP"
+	"a3bwx220ks5p1x-ats.iot.ap-southeast-2.amazonaws.com,8883,TCP"
+	"prod-apse2-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
+	
 )
 
 NL=$'\n'
+
+#Prompt user if they wish to import a file to check additional hosts
+PROMPT=$(/usr/bin/osascript <<EOF
+display dialog "Do you wish to import additional host file" buttons {"Yes","No","Quit"} default button 2 with icon stop giving up after 15
+set response to button returned of the result
+EOF
+)
+
+
+#If user Quit then exit the application
+if [[ $PROMPT == "Quit" ]]; then
+	echo "user quit"
+	exit 0
+fi
+
+#if the user selected Yes for import then prompt for file path and build an array
+if [[ $PROMPT == "Yes" ]]; then
+	#File path prompt
+	IMPORT_FILE=$(/usr/bin/osascript <<EOF
+set theFilePath to choose file
+set theFilePath to POSIX path of theFilePath
+EOF
+)
+	#Build imported file into an array
+	IMPORT_ARRAY=()
+	while IFS= read -r line; do
+   IMPORT_ARRAY+=("$line")
+	done <${IMPORT_FILE}
+fi
+
+
+
+#Combine default list and imported list into 1 Array
+FULL_ARRAY=()
+
+for LINE in "${APPLE_URL_ARRAY[@]}"; do
+	FULL_ARRAY+=("$LINE")
+done
+
+for LINE in "${IMPORT_ARRAY[@]}"; do
+	FULL_ARRAY+=("$LINE")
+done
 
 
 ####################################################################################################
@@ -469,7 +676,7 @@ function CalculateHostInfoTables () {
 	lastCategory="zzzNone"  # Some fake category so we recognize that the first host is the start of a new category
 	firstServer="yes"       # Flag for the first host so we don't try to close the preceding table -- there won't be one. 
 	HOST_TEST_TABLES=''    # This is the var we will insert into the HTML
-	for SERVER in "${APPLE_URL_ARRAY[@]}"; do
+	for SERVER in "${FULL_ARRAY[@]}"; do
 		#split the record info fields
 		HOSTNAME=$(echo ${SERVER} | cut -d ',' -f1)
 		PORT=$(echo ${SERVER} | cut -d ',' -f2)
@@ -544,7 +751,7 @@ function CalculateHostInfoTables () {
 						CERT_STATUS=$(echo | /usr/bin/openssl s_client -showcerts -proxy "${PROXY_HOST}:${PROXY_PORT}" -connect "${HOSTNAME}:${PORT}" 2>/dev/null | /usr/bin/openssl x509 -noout -issuer)
 					fi
 
-					if [[ ${CERT_STATUS} != *"Apple Inc"* ]] && [[ "${CERT_STATUS}" != *"Akamai Technologies"* ]] && [[ "${CERT_STATUS}" != *"Amazon"* ]] && [[ "${CERT_STATUS}" != *"DigiCert"* ]]; then
+					if [[ ${CERT_STATUS} != *"Apple Inc"* ]] && [[ "${CERT_STATUS}" != *"Akamai Technologies"* ]] && [[ "${CERT_STATUS}" != *"Amazon"* ]] && [[ "${CERT_STATUS}" != *"DigiCert"* ]] && [[ "${CERT_STATUS}" != *"Microsoft"* ]] && [[ "${CERT_STATUS}" != *"COMODO"* ]] && [[ "${CERT_STATUS}" != *"QuoVadis"* ]]; then
 						
 						SSL_ISSUER=$(echo ${CERT_STATUS} | awk -F'O=|/OU' '{print $2}')
 						
