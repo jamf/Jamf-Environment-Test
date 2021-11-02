@@ -30,7 +30,7 @@
 # written by Daniel MacLaughlin and Oliver Lindsey, March 2020
 # https://github.com/jamf/Jamf-Environment-Test
 
-#Version 1.4 (Jan 2021)
+#Version 1.5 (Nov 2021)
 
 #########################################################################################
 # General Information
@@ -618,7 +618,7 @@ function getProxyAddress () {
 		AUTO_PROXY_DISCOVERY_URL=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep ProxyAutoConfigURLString | /usr/bin/awk '{print $3}')
 		#test URL default is http://wpad/wpad.dat if not resolving then setting to empty
 		AUTO_PROXY_DISCOVERY_URL_STATUS=$(/usr/bin/curl -Is ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/head -n 1)
-		if [[ ${AUTO_PROXY_DISCOVERY_URL}_STATUS == "HTTP/1.1 200 OK" ]]; then
+		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} == "HTTP/1.1 200 OK" ]]; then
 			#Pac url is contactable, lets parse it for proxy host and port
 			AUTO_PROXY_DISCOVERY_URL_CONTENT=$(/usr/bin/curl ${AUTO_PROXY_DISCOVERY_URL})
 			#Get Proxy Host
@@ -638,7 +638,7 @@ function getProxyAddress () {
 		AUTO_PROXY_DISCOVERY_URL=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep ProxyAutoConfigURLString | /usr/bin/awk '{print $3}')
 		#test URL default is http://wpad/wpad.dat if not resolving then setting to empty
 		AUTO_PROXY_DISCOVERY_URL_STATUS=$(/usr/bin/curl -Is ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/head -n 1)
-		if [[ ${AUTO_PROXY_DISCOVERY_URL}_STATUS =~ "HTTP" ]]; then
+		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} =~ "HTTP" ]] ; then
 			#Pac url is contactable, lets parse it for proxy host and port
 			#Get Proxy Host
 			PROXY_HOST=$(/usr/bin/curl ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/grep 'PROXY' | /usr/bin/tail -n 1 | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f1)
@@ -698,7 +698,7 @@ function CalculateHostInfoTables () {
 			HOST_TEST_TABLES+="      <tr><th width=\"30%\">HOSTNAME</th><th width=\"30%\">Reverse DNS</th><th width=\"10%\">IP Address</th><th width=\"10%\">Port</th><th width=\"10%\">Protocol</th><th width=\"10%\">Accessible</th><th width=\"20%\">SSL Error</th></tr>${NL}"
 		fi # End of table start and end logic.
 
-		echo "  > Checking connectivity to : ${HOSTNAME}"
+		echo "  > Checking connectivity to : ${HOSTNAME} ($PORT $PROTOCOL)"
 
 		# Now print the info for this host...
 		#Perform Host nslookup to get reported IP
@@ -713,14 +713,14 @@ function CalculateHostInfoTables () {
 			#Check if Proxy set
 			if [[ ${PROXY_HOST} == "" ]] && [[ ${PROXY_PORT} == "" ]];then
 				#no proxy set
-				STATUS=$(/usr/bin/nc -z -w 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')	
+				STATUS=$(/usr/bin/nc -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')	
 			else
-				STATUS=$(/usr/bin/nc -z -w 3 -x ${PROXY_HOST}:${PROXY_PORT} -X connect ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
+				STATUS=$(/usr/bin/nc -z -G 3 -x ${PROXY_HOST}:${PROXY_PORT} -X connect ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 			fi
 			
 		elif [[ ${PROTOCOL} == "TCP - non-proxied" ]]; then
 			#for non proxy aware urls we will be using netcat aka nc
-			STATUS=$(/usr/bin/nc -z -w 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
+			STATUS=$(/usr/bin/nc -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 		else    
 			# UDP goes direct... not proxied. 
 			STATUS=$(/usr/bin/nc -u -z -w 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
@@ -745,10 +745,10 @@ function CalculateHostInfoTables () {
 			else
 				if [[ ${PROTOCOL} == "TCP" ]]; then                
 					if [[ ${PROXY_HOST} == "" ]] && [[ ${PROXY_PORT} == "" ]];then
-						CERT_STATUS=$(echo | /usr/bin/openssl s_client -showcerts -connect "${HOSTNAME}:${PORT}" 2>/dev/null | /usr/bin/openssl x509 -noout -issuer )
+						CERT_STATUS=$(echo | /usr/bin/openssl s_client -showcerts -connect "${HOSTNAME}:${PORT}" -servername "${HOSTNAME}" 2>/dev/null | /usr/bin/openssl x509 -noout -issuer )
 						
 					else
-						CERT_STATUS=$(echo | /usr/bin/openssl s_client -showcerts -proxy "${PROXY_HOST}:${PROXY_PORT}" -connect "${HOSTNAME}:${PORT}" 2>/dev/null | /usr/bin/openssl x509 -noout -issuer)
+						CERT_STATUS=$(echo | /usr/bin/openssl s_client -showcerts -proxy "${PROXY_HOST}:${PROXY_PORT}" -connect "${HOSTNAME}:${PORT}" -servername "${HOSTNAME}" 2>/dev/null | /usr/bin/openssl x509 -noout -issuer)
 					fi
 
 					if [[ ${CERT_STATUS} != *"Apple Inc"* ]] && [[ "${CERT_STATUS}" != *"Akamai Technologies"* ]] && [[ "${CERT_STATUS}" != *"Amazon"* ]] && [[ "${CERT_STATUS}" != *"DigiCert"* ]] && [[ "${CERT_STATUS}" != *"Microsoft"* ]] && [[ "${CERT_STATUS}" != *"COMODO"* ]] && [[ "${CERT_STATUS}" != *"QuoVadis"* ]]; then
