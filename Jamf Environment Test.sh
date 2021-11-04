@@ -30,7 +30,7 @@
 # written by Daniel MacLaughlin and Oliver Lindsey, March 2020
 # https://github.com/jamf/Jamf-Environment-Test
 
-#Version 1.5 (Nov 2021)
+#Version 1.5 (Nov 2021) with thanks to @scheblein for his changes
 
 #########################################################################################
 # General Information
@@ -44,6 +44,7 @@
 # www.microsoft.com,443,TCP
 #
 #Apple URLS from https://support.apple.com/en-us/HT210060
+#Jamf URLS from https://docs.jamf.com/technical-articles/Permitting_InboundOutbound_Traffic_with_Jamf_Cloud.html
 #Format is HOSTNAME,port,protocol,category 
 #protocol options are TCP, UDP and TCP - non-proxied
 #category is only required for the first of each section to allow for formatting of the html
@@ -176,9 +177,9 @@ APPLE_URL_ARRAY=(
 	"api.push.apple.com,2197,TCP"
 	
 	#Device Management
-	"gdmf.apple.com,443,TCP,Device Management and Enrollment"
-	"deviceenrollment.apple.com,443,TCP"
+	"deviceenrollment.apple.com,443,TCP,Device Management and Enrollment"
 	"deviceservices-external.apple.com,443,TCP"
+	"gdmf.apple.com,443,TCP"
 	"identity.apple.com,443,TCP"
 	"iprofiles.apple.com,443,TCP"
 	"mdmenrollment.apple.com,443,TCP"
@@ -194,8 +195,8 @@ APPLE_URL_ARRAY=(
 	"business.apple.com,443,TCP"
 	"business.apple.com,80,TCP"
 	"ws.business.apple.com,443,TCP"
-	#"isu.apple.com,443,TCP"
-	#"isu.apple.com,80,TCP"
+	#"isu.apple.com,443,TCP" Last checked November 2021 unreachable
+	#"isu.apple.com,80,TCP" Last checked November 2021 unreachable
 	
 	#Software updates
 	"appldnld.apple.com,80,TCP,Software Updates Hosts"
@@ -219,7 +220,7 @@ APPLE_URL_ARRAY=(
 	"swdist.apple.com,443,TCP"
 	"swdownload.apple.com,80,TCP"
 	"swdownload.apple.com,443,TCP"
-	"swpost.apple.com,80,TCP"
+	#"swpost.apple.com,80,TCP" Last checked November 2021 unreachable
 	"swscan.apple.com,443,TCP"
 	"updates-http.cdn-apple.com,80,TCP"
 	"updates.cdn-apple.com,443,TCP"
@@ -238,9 +239,14 @@ APPLE_URL_ARRAY=(
 	"affiliate.itunes.apple.com,443,TCP"
 	"analytics.itunes.apple.com,443,TCP"
 
+	#Carrier updates
+	"appldnld.apple.com.edgesuite.net,80,TCP,Carrier updates"
 	
 	#Content Caching
 	"lcdn-registration.apple.com,443,TCP,Content Caching"
+	"suconfig.apple.com,443,TCP"
+	"xp-cdn.apple.com,443,TCP"
+	"lcdn-locator.apple.com,443,TCP"
 	"serverstatus.apple.com,443,TCP"
 	
 	#Apple Developer
@@ -250,9 +256,9 @@ APPLE_URL_ARRAY=(
 	"data-development.appattest.apple.com,443,TCP"
 	
 	#Feedback Assistant
-	"fba.apple.com,443,TCP,Feedback Assistant"
+	"bpapi.apple.com,443,TCP,Feedback Assistant"
 	"cssubmissions.apple.com,443,TCP"
-	"bpapi.apple.com,443,TCP"
+	"fba.apple.com,443,TCP"
 	
 	#Apple diagnostics
 	"diagassets.apple.com,443,TCP,Apple diagnostics"
@@ -260,18 +266,44 @@ APPLE_URL_ARRAY=(
 	#DNS Resolution
 	#currently unable to be validated for certificates due to openssl on macOS not supporting TLS 1.3
 	#"doh.dns.apple.com,443,TCP,Domain Name System resolution"
-	
-	
+
 	#Certificate validation
-	"crl.apple.com,80,TCP,Certificate Validation Hosting"
+	"certs.apple.com,80,TCP,Certificate Validation Hosting"
+	"certs.apple.com,443,TCP"
+	"crl.apple.com,80,TCP"
 	"crl.entrust.net,80,TCP"
 	"crl3.digicert.com,80,TCP"
 	"crl4.digicert.com,80,TCP"
 	"ocsp.apple.com,80,TCP"
+	"ocsp.digicert.cn,80,TCP"
 	"ocsp.digicert.com,80,TCP"
 	"ocsp.entrust.net,80,TCP"
-	"ocsp.verisign.net,80,TCP"
+	"ocsp2.apple.com,443,TCP"
 	"valid.apple.com,443,TCP"
+	
+	#Apple ID
+	"appleid.apple.com,443,TCP,Apple ID"
+	"appleid.cdn-apple.com,443,TCP"
+	"idmsa.apple.com,443,TCP"
+	"gsa.apple.com,443,TCP"
+	
+	#iCloud
+	"api.apple-cloudkit.com,443,TCP,iCloud"
+	"setup.apple-cloudkit.com,443,TCP"
+	"cdn.apple-livephotoskit.com,443,TCP"
+	"idmsaapz-mdn.apzones.com,443,TCP"
+	
+	#Additional Content
+	"audiocontentdownload.apple.com,80,TCP,Additional Content"
+	"audiocontentdownload.apple.com,443,TCP"
+	"devimages-cdn.apple.com,80,TCP"
+	"devimages-cdn.apple.com,443,TCP"
+	"download.developer.apple.com,80,TCP"
+	"download.developer.apple.com,443,TCP"
+	"playgrounds-assets-cdn.apple.com,443,TCP"
+	"playgrounds-cdn.apple.com,443,TCP"
+	"sylvan.apple.com,80,TCP"
+	"sylvan.apple.com,443,TCP"
 
 	#Jamf Hosts
 	"jamf.com,443,TCP,Jamf Services"
@@ -638,7 +670,7 @@ function getProxyAddress () {
 		AUTO_PROXY_DISCOVERY_URL=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep ProxyAutoConfigURLString | /usr/bin/awk '{print $3}')
 		#test URL default is http://wpad/wpad.dat if not resolving then setting to empty
 		AUTO_PROXY_DISCOVERY_URL_STATUS=$(/usr/bin/curl -Is ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/head -n 1)
-		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} =~ "HTTP" ]] ; then
+		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} =~ "HTTP" ]]; then
 			#Pac url is contactable, lets parse it for proxy host and port
 			#Get Proxy Host
 			PROXY_HOST=$(/usr/bin/curl ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/grep 'PROXY' | /usr/bin/tail -n 1 | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f1)
@@ -695,10 +727,10 @@ function CalculateHostInfoTables () {
 			lastCategory="${CATEGORY}"
 			HOST_TEST_TABLES+="    <h3>${CATEGORY}</h3>${NL}"
 			HOST_TEST_TABLES+="    <table class=\"tg\">${NL}"
-			HOST_TEST_TABLES+="      <tr><th width=\"30%\">HOSTNAME</th><th width=\"30%\">Reverse DNS</th><th width=\"10%\">IP Address</th><th width=\"10%\">Port</th><th width=\"10%\">Protocol</th><th width=\"10%\">Accessible</th><th width=\"20%\">SSL Error</th></tr>${NL}"
+			HOST_TEST_TABLES+="      <tr><th width=\"40%\">HOSTNAME</th><th width=\"50%\">Reverse DNS</th><th width=\"10%\">IP Address</th><th width=\"10%\">Port</th><th width=\"10%\">Protocol</th><th width=\"10%\">Accessible</th><th width=\"20%\">SSL Error</th></tr>${NL}"
 		fi # End of table start and end logic.
 
-		echo "  > Checking connectivity to : ${HOSTNAME} ($PORT $PROTOCOL)"
+		echo "  > Checking connectivity to : ${HOSTNAME} ${PORT} ${PROTOCOL}"
 
 		# Now print the info for this host...
 		#Perform Host nslookup to get reported IP
@@ -723,7 +755,7 @@ function CalculateHostInfoTables () {
 			STATUS=$(/usr/bin/nc -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 		else    
 			# UDP goes direct... not proxied. 
-			STATUS=$(/usr/bin/nc -u -z -w 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
+			STATUS=$(/usr/bin/nc -u -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 
 		fi
 		
