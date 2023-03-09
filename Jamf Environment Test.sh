@@ -755,7 +755,7 @@ function CalculateHostInfoTables () {
 			STATUS=$(/usr/bin/nc -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 		else    
 			# UDP goes direct... not proxied. 
-			STATUS=$(/usr/bin/nc -u -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
+			STATUS=$(/usr/bin/nc -u -z ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 
 		fi
 		
