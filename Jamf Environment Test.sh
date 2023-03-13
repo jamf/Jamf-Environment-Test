@@ -1,7 +1,7 @@
 #!/bin/bash
 ####################################################################################################
 #
-# Copyright (c) 2021, Jamf, LLC.  All rights reserved.
+# Copyright (c) 2023, Jamf, LLC.  All rights reserved.
 #
 #       Redistribution and use in source and binary forms, with or without
 #       modification, are permitted provided that the following conditions are met:
@@ -31,6 +31,12 @@
 # https://github.com/jamf/Jamf-Environment-Test
 
 #Version 1.5 (Nov 2021) with thanks to @scheblein for his changes
+#Version 1.6 (Mar 2023) with thanks to @charliwest for his changes
+# includes pythom framework 3.9.6 and python module pacparser for pac file parsing
+# additional logging messages to help troubleshoot
+# approx run time: 
+#	without a proxy and all open 2 mins, with 
+#	with a proxy and everything blocked 20 mins
 
 #########################################################################################
 # General Information
@@ -187,30 +193,52 @@ APPLE_URL_ARRAY=(
 	"vpp.itunes.apple.com,443,TCP"
 	
 	#Apple School Manager and Apple Business Manager
-	"school.apple.com,443,TCP,Apple School Manager and Apple Business Manager"
-	"school.apple.com,80,TCP"
-	"ws.school.apple.com,443,TCP"
-	"ws-ee-maidsvc.icloud.com,443,TCP"
-	"ws-ee-maidsvc.icloud.com,80,TCP"
-	"business.apple.com,443,TCP"
+	"business.apple.com,443,TCP,Apple Business Manager and Apple School Manager"
 	"business.apple.com,80,TCP"
-	"ws.business.apple.com,443,TCP"
-	#"isu.apple.com,443,TCP" Last checked November 2021 unreachable
-	#"isu.apple.com,80,TCP" Last checked November 2021 unreachable
+	"school.apple.com,443,TCP"
+	"school.apple.com,80,TCP"
+	"appleid.cdn-apple.com,443,TCP"
+	"idmsa.apple.com,443,TCP"
+	"itunes.apple.com,80,TCP"
+	"itunes.apple.com,443,TCP"
+	"silverbullet.itunes.apple.com,80,TCP"
+	"silverbullet.itunes.apple.com,443,TCP"
+	"s.mzstatic.com,443,TCP"
+	"api.ent.apple.com,443,TCP"
+	"api.edu.apple.com,443,TCP"
+	"statici.icloud.com,443,TCP"
+	"api.vertexsmb.com,443,TCP"
+	"www.apple.com,443,TCP"
+	
+	# Apple Business Essentials device management
+	"axm-adm-enroll.apple.com,443,TCP,Apple Business Essentials device management"
+	"axm-adm-mdm.apple.com,443,TCP"
+	"axm-adm-scep.apple.com,443,TCP"
+	"axm-app.apple.com,443,TCP"
+	"api.apple-mapkit.com,443,TCP"
+	"icons.axm-usercontent-apple.com,443,TCP"
+	
+	# Classroom and Schoolwork
+	"s.mzstatic.com,443,TCP,Classroom and Schoolwork"
+	"play.itunes.apple.com,443,TCP"
+	"ws-ee-maidsvc.icloud.com,443,TCP"
+	"ws.school.apple.com,443,TCP"
+	"pg-bootstrap.itunes.apple.com,443,TCP"
+	"cls-iosclient.itunes.apple.com,443,TCP"
+	"cls-ingest.itunes.apple.com,443,TCP"
 	
 	#Software updates
 	"appldnld.apple.com,80,TCP,Software Updates Hosts"
 	"configuration.apple.com,443,TCP"
+	"gdmf.apple.com,443,TCP"
 	"gg.apple.com,80,TCP"
 	"gg.apple.com,443,TCP"
-	"gnf-mdn.apple.com,443,TCP"
-	"gnf-mr.apple.com,443,TCP"
 	"gs.apple.com,80,TCP"
 	"gs.apple.com,443,TCP"
 	"ig.apple.com,443,TCP"
 	"mesu.apple.com,80,TCP"
 	"mesu.apple.com,443,TCP"
-	"ns.itunes.apple.com,443,TCP"
+#	"ns.itunes.apple.com,443,TCP" Despite being listed on Apple's document netcat fails to connect to this url
 	"oscdn.apple.com,80,TCP"
 	"oscdn.apple.com,443,TCP"
 	"osrecovery.apple.com,80,TCP"
@@ -220,37 +248,41 @@ APPLE_URL_ARRAY=(
 	"swdist.apple.com,443,TCP"
 	"swdownload.apple.com,80,TCP"
 	"swdownload.apple.com,443,TCP"
-	#"swpost.apple.com,80,TCP" Last checked November 2021 unreachable
 	"swscan.apple.com,443,TCP"
 	"updates-http.cdn-apple.com,80,TCP"
 	"updates.cdn-apple.com,443,TCP"
 	"xp.apple.com,443,TCP"
 
 	#App Store
-	"itunes.apple.com,443,TCP,Apple App Store Hosts"
-	"itunes.apple.com,80,TCP"
+	"itunes.apple.com,80,TCP,Apple App Store Hosts"
+	"itunes.apple.com,443,TCP"
+	"silverbullet.itunes.apple.com,80,TCP"
+	"silverbullet.itunes.apple.com,443,TCP"
 	"apps.apple.com,443,TCP"
 	"api.apps.apple.com,443,TCP"
 	"s.mzstatic.com,443,TCP"
 	"apps.mzstatic.com,443,TCP"
 	"ppq.apple.com,443,TCP"
-	"ns.itunes.apple.com,443,TCP"
-	"init.itunes.apple.com,443,TCP"
-	"affiliate.itunes.apple.com,443,TCP"
-	"analytics.itunes.apple.com,443,TCP"
 
 	#Carrier updates
-	"appldnld.apple.com.edgesuite.net,80,TCP,Carrier updates"
+	"appldnld.apple.com,80,TCP,Carrier updates"
+	"appldnld.apple.com.edgesuite.net,80,TCP"
+	"itunes.com,80,TCP"
+	"itunes.apple.com,443,TCP"
+	"updates-http.cdn-apple.com,80,TCP"
+	"updates.cdn-apple.com,443,TCP"
 	
 	#Content Caching
 	"lcdn-registration.apple.com,443,TCP,Content Caching"
-	"suconfig.apple.com,443,TCP"
+	"suconfig.apple.com,80,TCP"
 	"xp-cdn.apple.com,443,TCP"
 	"lcdn-locator.apple.com,443,TCP"
 	"serverstatus.apple.com,443,TCP"
 	
-	#Apple Developer
-	"register.appattest.apple.com,443,TCP,Apple Developer"
+	#App features
+	"api.apple-cloudkit.com,443,TCP,App features"
+	"data-development.appattest.apple.com,443,TCP"
+	"register.appattest.apple.com,443,TCP"
 	"data.appattest.apple.com,443,TCP"
 	"register-development.appattest.apple.com,443,TCP"
 	"data-development.appattest.apple.com,443,TCP"
@@ -292,6 +324,32 @@ APPLE_URL_ARRAY=(
 	"setup.apple-cloudkit.com,443,TCP"
 	"cdn.apple-livephotoskit.com,443,TCP"
 	"idmsaapz-mdn.apzones.com,443,TCP"
+	"appleid.cdn-apple.com,443,TCP"
+	"service.gc.apple.com,443,TCP"
+	"developer.icloud.com,443,TCP"
+	"developer.icloud.com.cn,443,TCP"
+	"api.icloud.apple.com,443,TCP"
+	"cdn.icloud-content.com,443,TCP"
+	"publish.iwork.apple.com,443,TCP"
+	"mask.icloud.com,443,UDP"
+	"mask-h2.icloud.com,443,UDP"
+	"mask-api.icloud.com,443,UDP"
+	
+	#Siri and Search
+	"guzzoni.apple.com,443,TCP,Siri and Search"
+	"api.smoot.apple.com,443,TCP"
+	
+	#Associated Domains
+	"app-site-association.cdn-apple.com,443,TCP,Associated Domains"
+	"app-site-association.cdn-apple.com,443,UDP"
+	"app-site-association.networking.apple,443,TCP"
+	"app-site-association.networking.apple,443,UDP"
+	
+	#Tap to Pay on iPhone
+	"pos-device.apple.com,443,TCP,Tap to Pay on iPhone"
+	"pos-device.apple.com,443,UDP"
+	"humb.apple.com,443,TCP"
+#	"phonesubmissions.apple.com,443,TCP" Removed due to not supported on macOS
 	
 	#Additional Content
 	"audiocontentdownload.apple.com,80,TCP,Additional Content"
@@ -307,7 +365,7 @@ APPLE_URL_ARRAY=(
 
 	#Jamf Hosts
 	"jamf.com,443,TCP,Jamf Services"
-	"www.jamfcloud.com,443,TCP"
+	"test.jamfcloud.com,443,TCP"
 	"use1-jcdsdownloads.services.jamfcloud.com,443,TCP"
 	"use1-jcds.services.jamfcloud.com,443,TCP"
 	"euc1-jcdsdownloads.services.jamfcloud.com,443,TCP"
@@ -334,7 +392,7 @@ APPLE_URL_ARRAY=(
 	"a3bwx220ks5p1x-ats.iot.ap-northeast-1.amazonaws.com,8883,TCP"
 	"prod-apne1-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
 	"a3bwx220ks5p1x-ats.iot.ap-southeast-2.amazonaws.com,443,TCP"
-	"a3bwx220ks5p1x-ats.iot.ap-southeast-2.amazonaws.com,8883,TCP"
+	 
 	"prod-apse2-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
 	
 )
@@ -386,6 +444,14 @@ done
 
 ####################################################################################################
 # 
+# VARIABLES
+#
+####################################################################################################
+LOCAL_PROXY_PAC_FILE="/tmp/proxy.pac"
+
+PYTHON="./Python.framework/Versions/3.9/bin/python3"
+####################################################################################################
+# 
 # FUNCTIONS
 #
 ####################################################################################################
@@ -415,6 +481,7 @@ function CreateEmptyReportFile () {
 		echo "[error] I wasn't able to create a results file : \"${REPORT_PATH}\""
 		exit 1
 	fi
+	echo "[step] Creating the report file completed"
 }
 
 ####################################################################################################
@@ -422,6 +489,7 @@ function CreateEmptyReportFile () {
 ####################################################################################################
 
 function GenerateReportHTML () {
+	echo "[step] Generating computer report data"
 /bin/cat << EOF >> "${REPORT_PATH}"
 <html>
 	<head>  
@@ -459,11 +527,11 @@ function GenerateReportHTML () {
 		<p>macOS Version: $(/usr/bin/sw_vers -productVersion), $(/usr/bin/awk '/SOFTWARE LICENSE AGREEMENT FOR macOS/' '/System/Library/CoreServices/Setup Assistant.app/Contents/Resources/en.lproj/OSXSoftwareLicense.rtf' | /usr/bin/awk -F 'macOS ' '{print $NF}' | /usr/bin/tr -d '\\') build $(/usr/bin/sw_vers -buildVersion)</p>
 
 		<h2>Client Network Details</h2>
-		<p>Public IP: $(/usr/bin/AssetCacheLocatorUtil 2>&1 | /usr/bin/grep "public IP address is" | awk 'NR==1{print $NF}' | /usr/bin/sed 's/\.$//')</p>
 		<p>Local IP: $(echo "$sysProfilerNetworkData" | /usr/bin/grep "IPv4 Addresses:" | /usr/bin/awk 'NR==1{print $NF}')</p>
 		<p>Primary Network Interface: $( echo "$sysProfilerNetworkData" | /usr/bin/grep -B 5 "IPv4 Addresses:" | /usr/bin/grep "Type: " | /usr/bin/awk 'NR==1{print $NF}')</p>
 		<p>WIFI Interface: $(networksetup -listallhardwareports | awk '/Hardware Port: Wi-Fi/,/Ethernet/' | awk 'NR==2' | cut -d " " -f 2)</p>
 EOF
+	echo "[step] Computer data for report completed"
 }
 
 function createShareReport () {
@@ -487,7 +555,7 @@ EOF
 ####################################################################################################
 
 function CreateProxyTable () {
-	
+	echo "[step] Creating proxy table for report"
 
 /bin/cat << EOF >> "${REPORT_PATH}"  
 		<h2>Proxy Settings</h2>
@@ -498,8 +566,8 @@ function CreateProxyTable () {
 				<th>Auto Proxy Config</th>
 				<th>Web Proxy</th>
 				<th>Secure Web Proxy</th>
-				<th>FTP Proxy</th>
 				<th>Socks Proxy</th>
+				<th>FTP Proxy</th>
 				<th>Streaming Proxy</th>
 				<th>Gopher Proxy</th>
 				<th>Proxy Bypass Domains</th>
@@ -509,11 +577,18 @@ function CreateProxyTable () {
 			${PROXY_INFO_TABLE_ROWS}
 		</table>
 EOF
+	echo "[step] Creating proxy table for report completed"
 }
 
 #### Local macOS Additional Network information ###
 function CalculateProxyInfoTableRows () {
-
+	echo "[step] Calculating proxy data for report"
+	
+	# detemine major OS version as some proxies not support
+	CURRENT_OS_VERSION=$(/usr/bin/sw_vers -productVersion)
+	IFS='.' read -r -a VERSION <<< "${CURRENT_OS_VERSION}"
+	MAJOR_OS_VERSION=${VERSION[0]}
+	
 	echo "[step] Getting proxy config info..."
 	PROXY_INFO_TABLE_ROWS=''
 
@@ -528,10 +603,16 @@ function CalculateProxyInfoTableRows () {
 		AUTO_PROXY_URL=$(/usr/sbin/networksetup -getautoproxyurl "${INTERFACE_NAME_NO_UNDERSCORE}")
 		WEB_PROXY=$(/usr/sbin/networksetup -getwebproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
 		SECURE_WEB_PROXY=$(/usr/sbin/networksetup -getsecurewebproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
-		FTP_PROXY=$(/usr/sbin/networksetup -getftpproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
 		SOCKS_PROXY=$(/usr/sbin/networksetup -getsocksfirewallproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
-		STREAMING_PROXY=$(/usr/sbin/networksetup -getstreamingproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
-		GOPHER_PROXY=$(/usr/sbin/networksetup -getgopherproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
+		if [[ ${MAJOR_OS_VERSION} -ge 13 ]]; then
+			FTP_PROXY="Enabled: No"
+			STREAMING_PROXY="Enabled: No"
+			GOPHER_PROXY="Enabled: No"
+		else
+			FTP_PROXY=$(/usr/sbin/networksetup getftpproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
+			STREAMING_PROXY=$(/usr/sbin/networksetup -getstreamingproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
+			GOPHER_PROXY=$(/usr/sbin/networksetup -getgopherproxy "${INTERFACE_NAME_NO_UNDERSCORE}")
+		fi
 		PROXY_BYPASS_DOMAINS=$(/usr/sbin/networksetup -getproxybypassdomains "${INTERFACE_NAME_NO_UNDERSCORE}")
 		PROXY_BYPASS_DOMAINS="${PROXY_BYPASS_DOMAINS//$'\n'/<br />}"  # Domain lists can have newlines... convert to html <br>
 		DNS_SERVERS=$(/usr/sbin/networksetup -getdnsservers "${INTERFACE_NAME_NO_UNDERSCORE}")
@@ -612,8 +693,8 @@ function CalculateProxyInfoTableRows () {
 				${AUTO_PROXY_URL_STATUS}
 				${WEB_PROXY_STATUS}
 				${SECURE_WEB_PROXY_STATUS}
-				${FTP_PROXY_STATUS}
 				${SOCKS_PROXY_STATUS}
+				${FTP_PROXY_STATUS}
 				${STREAMING_PROXY_STATUS}
 				${GOPHER_PROXY_STATUS}
 				${PROXY_BYPASS_DOMAINS_STATUS}
@@ -621,6 +702,7 @@ function CalculateProxyInfoTableRows () {
 				${SEARCH_DOMAINS_STATUS}
 			</tr>"
 		done
+		echo "[step] Proxy data for report calculated"
 }
 
 
@@ -629,7 +711,7 @@ function CalculateProxyInfoTableRows () {
 ####################################################################################################
 
 function getProxyAddress () {
-
+	echo "[step] Collecting local proxy settings"
 	#Set PROXY HOST and PORT variables to be empty before checks
 	PROXY_HOST=""
 	PROXY_PORT=""
@@ -647,16 +729,13 @@ function getProxyAddress () {
 	
 	#If Auto Proxy Discovery is Enabled then query and get prosy host and port
 	if [[ ${PROXY_HOST} == "" ]] && [[ ${PROXY_PORT} == "" ]] && [[ ${AUTO_PROXY_DISCOVERY_STATUS} == "1" ]]; then
+		
 		AUTO_PROXY_DISCOVERY_URL=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep ProxyAutoConfigURLString | /usr/bin/awk '{print $3}')
 		#test URL default is http://wpad/wpad.dat if not resolving then setting to empty
-		AUTO_PROXY_DISCOVERY_URL_STATUS=$(/usr/bin/curl -Is ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/head -n 1)
-		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} == "HTTP/1.1 200 OK" ]]; then
-			#Pac url is contactable, lets parse it for proxy host and port
-			AUTO_PROXY_DISCOVERY_URL_CONTENT=$(/usr/bin/curl ${AUTO_PROXY_DISCOVERY_URL})
-			#Get Proxy Host
-			PROXY_HOST=$(echo ${AUTO_PROXY_DISCOVERY_URL}_CONTENT | /usr/bin/grep PROXY | /usr/bin/tail -n 1 | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f1)
-			#Get Proxy Port
-			PROXY_PORT=$(echo ${AUTO_PROXY_DISCOVERY_URL}_CONTENT | /usr/bin/grep PROXY | /usr/bin/tail -n 1 | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f2)
+		AUTO_PROXY_DISCOVERY_URL_STATUS=$(/usr/bin/curl -Is ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/head -n 1)H
+		if [[ "${AUTO_PROXY_DISCOVERY_URL_STATUS}" =~ "200" ]]; then
+			#Pac url is contactable, lets download it to parse for proxy host and port
+			/usr/bin/curl --silent "${AUTO_PROXY_DISCOVERY_URL}" --output "${LOCAL_PROXY_PAC_FILE}"
 		else
 			PROXY_HOST=""
 			PROXY_PORT=""
@@ -666,16 +745,13 @@ function getProxyAddress () {
 	
 	#If Auto Proxy Configuration is Enabled then query and get prosy host and port
 	if [[ ${PROXY_HOST} == "" ]] && [[ ${PROXY_PORT} == "" ]] && [[ ${AUTO_PROXY_CONFIGURATION_STATUS} == "1" ]]; then
-	
 		AUTO_PROXY_DISCOVERY_URL=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep ProxyAutoConfigURLString | /usr/bin/awk '{print $3}')
 		#test URL default is http://wpad/wpad.dat if not resolving then setting to empty
 		AUTO_PROXY_DISCOVERY_URL_STATUS=$(/usr/bin/curl -Is ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/head -n 1)
-		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} =~ "HTTP" ]]; then
-			#Pac url is contactable, lets parse it for proxy host and port
-			#Get Proxy Host
-			PROXY_HOST=$(/usr/bin/curl ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/grep 'PROXY' | /usr/bin/tail -n 1 | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f1)
-			#Get Proxy Port
-			PROXY_PORT=$(/usr/bin/curl ${AUTO_PROXY_DISCOVERY_URL} | /usr/bin/grep 'PROXY' | /usr/bin/tail -n 1 | /usr/bin/awk '{print $3}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f2)
+		if [[ ${AUTO_PROXY_DISCOVERY_URL_STATUS} =~ "200" ]]; then
+			#Pac url is contactable, lets download it for parsing
+			/usr/bin/curl --silent "${AUTO_PROXY_DISCOVERY_URL}" --output "${LOCAL_PROXY_PAC_FILE}"
+			
 		else
 			PROXY_HOST=""
 			PROXY_PORT=""
@@ -696,7 +772,26 @@ function getProxyAddress () {
 		PROXY_HOST=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep HTTPProxy | /usr/bin/awk '{print $3}')
 		PROXY_PORT=$(/bin/cat ${PROXY_DATA_LOCATION} | /usr/bin/grep HTTPPort | /usr/bin/awk '{print $3}')
 	fi
+}
+
+####################################################################################################
+# Proxy Parse Function
+####################################################################################################
+GetProxyHostFromPac() {
+	HOSTNAME=${1}
+	PORT=${2}
+	# Setting prefix for pacarser
+	if [[ ${PORT} == 80 ]]; then
+		PREFIX="http://"
+	elif [[ ${PORT} == 443 ]]; then
+		PREFIX="https://"
+	else
+		PREFIX="https://"
+	fi
+	URL="${PREFIX}${HOSTNAME}"
 	
+	PARSE_PAC_OUTPUT=$(${PYTHON} -c "import sys; import pacparser; pacparser.init(); pacparser.parse_pac_file(sys.argv[1]); proxy = pacparser.find_proxy(sys.argv[2]); print(proxy)" "${LOCAL_PROXY_PAC_FILE}" "${URL}")
+	echo "${PARSE_PAC_OUTPUT}"
 }
 
 ####################################################################################################
@@ -704,7 +799,7 @@ function getProxyAddress () {
 ####################################################################################################
 ### Get HOSTNAME Connection Status ###
 function CalculateHostInfoTables () {
-	echo "[step] Checking Apple Hosts..."
+	echo "[step] Checking URLS"
 	lastCategory="zzzNone"  # Some fake category so we recognize that the first host is the start of a new category
 	firstServer="yes"       # Flag for the first host so we don't try to close the preceding table -- there won't be one. 
 	HOST_TEST_TABLES=''    # This is the var we will insert into the HTML
@@ -730,7 +825,7 @@ function CalculateHostInfoTables () {
 			HOST_TEST_TABLES+="      <tr><th width=\"40%\">HOSTNAME</th><th width=\"50%\">Reverse DNS</th><th width=\"10%\">IP Address</th><th width=\"10%\">Port</th><th width=\"10%\">Protocol</th><th width=\"10%\">Accessible</th><th width=\"20%\">SSL Error</th></tr>${NL}"
 		fi # End of table start and end logic.
 
-		echo "  > Checking connectivity to : ${HOSTNAME} ${PORT} ${PROTOCOL}"
+		echo "  > Checking connectivity to: ${HOSTNAME} ${PORT} ${PROTOCOL}"
 
 		# Now print the info for this host...
 		#Perform Host nslookup to get reported IP
@@ -742,17 +837,24 @@ function CalculateHostInfoTables () {
 		
 		# Using nc, if proxy defined then adding in proxy flag
 		if [[ ${PROTOCOL} == "TCP" ]]; then
+			if [[ -f "${LOCAL_PROXY_PAC_FILE}" ]]; then
+				PROXY_PARSE_DATA=$(GetProxyHostFromPac ${HOSTNAME} ${PORT})
+				PROXY_HOST=$(echo ${PROXY_PARSE_DATA} | /usr/bin/awk '{print $2}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f1)
+				PROXY_PORT=$(echo ${PROXY_PARSE_DATA} | /usr/bin/awk '{print $2}' | /usr/bin/tr -d "';" | /usr/bin/cut -d: -f2)
+			fi
+			
 			#Check if Proxy set
 			if [[ ${PROXY_HOST} == "" ]] && [[ ${PROXY_PORT} == "" ]];then
 				#no proxy set
-				STATUS=$(/usr/bin/nc -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')	
+				STATUS=$(/usr/bin/nc -z -G 1 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')	
 			else
-				STATUS=$(/usr/bin/nc -z -G 3 -x ${PROXY_HOST}:${PROXY_PORT} -X connect ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
+				echo "  > ${PROXY_HOST}:${PROXY_PORT} to be used for ${HOSTNAME}:${PORT}"
+				STATUS=$(/usr/bin/nc -z -G 1 -x ${PROXY_HOST}:${PROXY_PORT} -X connect ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 			fi
 			
 		elif [[ ${PROTOCOL} == "TCP - non-proxied" ]]; then
 			#for non proxy aware urls we will be using netcat aka nc
-			STATUS=$(/usr/bin/nc -z -G 3 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
+			STATUS=$(/usr/bin/nc -z -G 1 ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
 		else    
 			# UDP goes direct... not proxied. 
 			STATUS=$(/usr/bin/nc -u -z ${HOSTNAME} ${PORT} 2>&1 | /usr/bin/awk '{print $7}')
@@ -816,6 +918,7 @@ function CalculateHostInfoTables () {
 
 #Create NetworkCheck table
 function createNetworkCheckTable () {
+	echo "[step] Adding Network Check Table"
 /bin/cat << EOF >> "${REPORT_PATH}"  
 		<p />
 		<h2>Server Connectivity Tests</h2>
@@ -866,7 +969,7 @@ function createAdditionalChecksHTML () {
 				<td>Gatekeeper Status</td>
 				${GATEKEEPER_STATUS}
 				<td>If GateKeeper is disabled it opens your machine to malicious content</td>
-				<td><a href="https://support.apple.com/guide/deployment-reference-macos/gatekeeper-and-runtime-protection-apd02b925e38" style="color:black;">About GateKeeper on your Mac</a></td>
+				<td><a href="https://support.apple.com/en-au/guide/deployment/dep323ab8aa3/1/web/1.0" style="color:black;">About GateKeeper on your Mac</a></td>
 			</tr>
 			<tr>
 				<td>FileVault Status</td>
@@ -904,15 +1007,16 @@ EOF
 
 function calculateAdditionalChecks () {
 	#this function is used to populate information into the Addtional Checks Report
-	
+	echo "[step] Running additional checks"
 	#apsctl Status
+	echo "[step] Checking APNS Status"
 	APSCTL_STATUS_CHECK=$(/System/Library/PrivateFrameworks/ApplePushService.framework/apsctl status | /usr/bin/grep "connected to server hostname:")
 		if [[ ${APSCTL_STATUS_CHECK} =~ "courier.push.apple.com" ]]; then
 			APSCTL_STATUS='<td style="color: green;">Connected</td>'
 		else
 			APSCTL_STATUS='<td style="color: red;">Unavailable</td>'
 		fi
-	
+	echo "[step] Checking Root user is present"
 	#Root User Status
 	ROOT_USER_CHECK=$(/usr/bin/dscl . -read /Users/root AuthenticationAuthority 2>&1 | /usr/bin/grep -c "No such key")
 		if [[ ${ROOT_USER_CHECK} == "1" ]]; then
@@ -921,6 +1025,7 @@ function calculateAdditionalChecks () {
 			ROOT_USER_STATUS='<td style="color: red;">Enabled</td>'
 		fi
 	#SIP Status
+	echo "[step] Checking SIP status"
 	SIP_STATUS_CHECK=$(/usr/bin/csrutil status | /usr/bin/awk '{print $5}' | /usr/bin/tr -d '.')
 		if [[ ${SIP_STATUS_CHECK} == "enabled" ]]; then
 			SIP_STATUS='<td style="color: green;">Enabled</td>'
@@ -928,6 +1033,7 @@ function calculateAdditionalChecks () {
 			SIP_STATUS='<td style="color: red;">Disabled</td>'
 		fi
 	#Gatekeeper
+	echo "[step] Checking Gatekeeper status"
 	GATEKEEPER_STATUS_CHECK=$(/usr/sbin/spctl --status | /usr/bin/awk '/assessments/ {print $2}')
 		if [[ ${GATEKEEPER_STATUS_CHECK} == "enabled" ]]; then
 			GATEKEEPER_STATUS='<td style="color: green;">Enabled</td>'
@@ -936,6 +1042,7 @@ function calculateAdditionalChecks () {
 		fi
 	
 	#FileVault Status
+	echo "[step] Checking Filevault status"
 	FILEVAULT_STATUS_CHECK=$(/usr/bin/fdesetup status | /usr/bin/awk '{print $3}' | /usr/bin/tr -d .)
 		if [[ ${FILEVAULT_STATUS_CHECK} == "On" ]]; then
 			FILEVAULT_STATUS='<td style="color: green;">Enabled</td>'
@@ -944,6 +1051,7 @@ function calculateAdditionalChecks () {
 		fi
 	
 	#Active Directory Domain
+	echo "[step] Checking AD Binding status"
 	AD_STATUS_CHECK=$(/usr/sbin/dsconfigad -show | /usr/bin/grep 'Active Directory Domain' | /usr/bin/awk '{print $5}')
 		if [[ -z ${AD_STATUS_CHECK} ]];then
 			AD_STATUS='<td style="color: green;">Not Bound</td>'
@@ -952,6 +1060,7 @@ function calculateAdditionalChecks () {
 		fi
 	
 	#Content Cache report
+	echo "[step] Checking Content Cache settings, this can take some time if there is a proxy present"
 	CONTENT_CACHE_CHECK=$(/usr/bin/AssetCacheLocatorUtil 2>&1 | /usr/bin/grep "guid" | /usr/bin/awk '{print$4}' | /usr/bin/sed -e 's/^\(.*\):.*$/\1/' -e 's/^/,/' | /usr/bin/sort -u | /usr/bin/sed 's/,//')
 		if [[ -z ${CONTENT_CACHE_CHECK} ]];then
 			CONTENT_CACHE_STATUS='<td style="color: black;">None</td>'
@@ -960,9 +1069,11 @@ function calculateAdditionalChecks () {
 		fi
 	
 	#Launch Daemons
+	echo "[step] Checking for LaunchDaemons"
 	LAUNCH_DAEMONS_STATUS=$(/bin/launchctl list | /usr/bin/grep -v com.apple. | /usr/bin/cut -f3 | /usr/bin/sed 's|$|<br>|g' | /usr/bin/awk NR\>1)
 	
 	#Third-Party System Extensions
+	echo "[step] Checking for 3rd party Kernel Extensions"
 	KEXT_STATUS=$(/usr/sbin/kextstat | /usr/bin/grep -v com.apple | /usr/bin/awk '{print $6}' | /usr/bin/sed 's|$|<br>|g' | /usr/bin/awk NR\>1 )
 	
 	
@@ -994,7 +1105,6 @@ CalculateProxyInfoTableRows
 CreateProxyTable
 #get active interface proxy details for network query
 getProxyAddress
-echo "[Info] Reported Proxy Host is ${PROXY_HOST}:${PROXY_PORT}"
 
 #calculate the network connectivity 
 CalculateHostInfoTables
@@ -1009,8 +1119,15 @@ createShareReport
 
 #clean up Proxy File
 /bin/rm ${PROXY_DATA_LOCATION}
+if [[ -f "${LOCAL_PROXY_PAC_FILE}" ]]; then
+	/bin/rm ${LOCAL_PROXY_PAC_FILE}
+fi
+
 
 open -a "Safari" "${REPORT_PATH}"
 echo '[Done] Environment Checks Complete'
 echo "[acknowledgement] Host listings provided by Apple, Inc. (Public KB)"
+echo "[acknowledgement] https://github.com/sveinbjornt/Platypus"
+echo "[acknowledgement] https://github.com/gregneagle/relocatable-python"
+echo "[acknowledgement] https://github.com/manugarg/pacparser"
 echo "[acknowledgement] Icon plane by Juan Garces from the Noun Project, licensed under Create Commons (cc)"
