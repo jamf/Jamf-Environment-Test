@@ -1,7 +1,7 @@
 # Jamf-Environment-Test
 ![Jet Logo](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/Jet_Icon.png)
 
-Utility for testing an environment for success with Apple Devices
+Utility for testing an network environments for successful communication from Apple Devices to Apple and Jamf hosted services
 
 This tool is designed to be used by an Apple admin in conjuction with a networking admin on a network that the Apple device will be on.
 
@@ -9,7 +9,7 @@ It will report on current device proxy settings, and its connectivity to Apple u
 
 This application is designed to run on a macOS device only.
 
-It doesn't require any Administrator privledges, will query a collection of urls and display some relevant device information
+It doesn't require any Administrator privledges, it will query a collection of urls and display some relevant device information
 
 The output report is a html file that will be automatically opened upon completion of the application run
 
