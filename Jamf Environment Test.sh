@@ -30,13 +30,18 @@
 # written by Daniel MacLaughlin and Oliver Lindsey, March 2020
 # https://github.com/jamf/Jamf-Environment-Test
 
-#Version 1.5 (Nov 2021) with thanks to @scheblein for his changes
-#Version 1.6 (Mar 2023) with thanks to @charliwest for his changes
-# includes pythom framework 3.9.6 and python module pacparser for pac file parsing
-# additional logging messages to help troubleshoot
-# approx run time: 
-#	without a proxy and all open 2 mins, with 
-#	with a proxy and everything blocked 20 mins
+# Version 1.5 (Nov 2021) with thanks to @scheblein for his changes
+# Version 1.6 (Mar 2023) with thanks to @charliwest for his changes
+#  - includes pythom framework 3.9.6 and python module pacparser for pac file parsing
+#  - additional logging messages to help troubleshoot
+#  - approx run time: 
+#	  without a proxy and all open 2 mins, with 
+#	  with a false proxy server and everything blocked 20 mins
+#
+# Version 1.6.1 (Mar 2023) with thanks to @cipineda for his feedback
+#  - added head -1 to fdesetup task on line 1049
+#  - changed Sub Table header from Red to green
+
 
 #########################################################################################
 # General Information
@@ -392,7 +397,6 @@ APPLE_URL_ARRAY=(
 	"a3bwx220ks5p1x-ats.iot.ap-northeast-1.amazonaws.com,8883,TCP"
 	"prod-apne1-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
 	"a3bwx220ks5p1x-ats.iot.ap-southeast-2.amazonaws.com,443,TCP"
-	 
 	"prod-apse2-jamf-jpt-configs.s3.amazonaws.com,443,TCP"
 	
 )
@@ -401,7 +405,7 @@ NL=$'\n'
 
 #Prompt user if they wish to import a file to check additional hosts
 PROMPT=$(/usr/bin/osascript <<EOF
-display dialog "Do you wish to import additional host file" buttons {"Yes","No","Quit"} default button 2 with icon stop giving up after 15
+display dialog "Do you wish to import an additional hosts file?" buttons {"Yes","No","Quit"} default button 2 with icon stop giving up after 15
 set response to button returned of the result
 EOF
 )
@@ -470,7 +474,7 @@ function CreateEmptyReportFile () {
 	if [[ ! -d "${FOLDER}" ]]; then
 		FOLDER="${USER_HOME}/Desktop"
 		if [[ ! -d "${FOLDER}" ]]; then
-			echo "[error] I wasn't able to locate the /Users/Shared or your desktop folder : \"${FOLDER}\""
+			echo "[error] Unable to locate the /Users/Shared or \"${CURRENT_USER}\"'s desktop folder : \"${FOLDER}\""
 			exit 1
 		fi
 	fi
@@ -478,7 +482,7 @@ function CreateEmptyReportFile () {
 	REPORT_PATH="${FOLDER}/${REPORT_FILE_NAME}"
 	touch "${REPORT_PATH}"
 	if [[ ! -f "${REPORT_PATH}" ]]; then
-		echo "[error] I wasn't able to create a results file : \"${REPORT_PATH}\""
+		echo "[error] Unable to create a results file : \"${REPORT_PATH}\""
 		exit 1
 	fi
 	echo "[step] Creating the report file completed"
@@ -497,7 +501,7 @@ function GenerateReportHTML () {
 			body { background-color:#444444;font-family:Helvetica,Arial,sans-serif;margin:20px; }
 			h1 { margin-top:1em;margin-bottom:0.2em;color:#9eb8d5 }
 			h2 { margin-top:1em;margin-bottom:0.2em;color:#37bb9a }
-			h3 { margin-top:0.8em;margin-bottom:0.2em;color:#e8573f }
+			h3 { margin-top:0.8em;margin-bottom:0.2em;color:#37bb9a }
 			p { margin-top:0.2em;margin-bottom:0.2em;padding: 0 0 0 1px;color:white }
 			.tg    { border-collapse:collapse;border-spacing:0;border-color:#9ABAD9;width: 900px; }
 			.tg td { font-family:monospace;font-size:14px;padding:10px 20px;border-style:solid;border-width:0px;overflow:hidden;word-break:normal;border-top-width:1px;border-bottom-width:1px;border-color:#9ABAD9;color:#444;background-color:#EBF5FF; }
@@ -1043,7 +1047,7 @@ function calculateAdditionalChecks () {
 	
 	#FileVault Status
 	echo "[step] Checking Filevault status"
-	FILEVAULT_STATUS_CHECK=$(/usr/bin/fdesetup status | /usr/bin/awk '{print $3}' | /usr/bin/tr -d .)
+	FILEVAULT_STATUS_CHECK=$(/usr/bin/fdesetup status | /usr/bin/awk '{print $3}' | /usr/bin/head -1 | /usr/bin/tr -d .)
 		if [[ ${FILEVAULT_STATUS_CHECK} == "On" ]]; then
 			FILEVAULT_STATUS='<td style="color: green;">Enabled</td>'
 		else
