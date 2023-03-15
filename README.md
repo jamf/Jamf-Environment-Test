@@ -11,7 +11,7 @@ This application is designed to run on a macOS device only.
 
 It doesn't require any Administrator privledges, will query a collection of urls and display some relevant device information
 
-the output report is a html file that will be automatically opened upon completion of the application run
+The output report is a html file that will be automatically opened upon completion of the application run
 
 Raw version of the bash script is availble for validation
 
