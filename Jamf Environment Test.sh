@@ -37,10 +37,12 @@
 #  - approx run time: 
 #	  without a proxy and all open 2 mins, with 
 #	  with a false proxy server and everything blocked 20 mins
-#
-# Version 1.6.1 (Mar 2023) with thanks to @cipineda for his feedback
+# Version 1.6.1 (March 2023) with thanks to @cipineda for his feedback
 #  - added head -1 to fdesetup task on line 1049
 #  - changed Sub Table header from Red to green
+#
+# Version 1.6.2 (May 2023)
+#  - added appinstallers-packages.services.jamfcloud.com host
 
 
 #########################################################################################
@@ -371,6 +373,7 @@ APPLE_URL_ARRAY=(
 	#Jamf Hosts
 	"jamf.com,443,TCP,Jamf Services"
 	"test.jamfcloud.com,443,TCP"
+	"appinstallers-packages.services.jamfcloud.com,443,TCP"
 	"use1-jcdsdownloads.services.jamfcloud.com,443,TCP"
 	"use1-jcds.services.jamfcloud.com,443,TCP"
 	"euc1-jcdsdownloads.services.jamfcloud.com,443,TCP"
