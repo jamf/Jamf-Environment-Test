@@ -1015,7 +1015,7 @@ function calculateAdditionalChecks () {
 	#apsctl Status
 	echo "[step] Checking APNS Status"
 	APSCTL_STATUS_CHECK=$(/System/Library/PrivateFrameworks/ApplePushService.framework/apsctl status | /usr/bin/grep "server hostname:")
-		if [[ ${APSCTL_STATUS_CHECK} =~ "courier.push.apple.com" ]]; then
+		if [[ ${APSCTL_STATUS_CHECK} == *"courier.push.apple.com"* ]]; then
 			APSCTL_STATUS='<td style="color: green;">Connected</td>'
 		else
 			APSCTL_STATUS='<td style="color: red;">Unavailable</td>'
