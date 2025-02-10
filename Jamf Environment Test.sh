@@ -32,7 +32,7 @@
 
 # Version 1.5 (Nov 2021) with thanks to @scheblein for his changes
 # Version 1.6 (Mar 2023) with thanks to @charliwest for his changes
-#  - includes pythom framework 3.9.6 and python module pacparser for pac file parsing
+#  - includes python framework 3.9.6 and python module pacparser for pac file parsing
 #  - additional logging messages to help troubleshoot
 #  - approx run time: 
 #	  without a proxy and all open 2 mins, with 
@@ -50,7 +50,7 @@
 # it is designed to query a list of Apple and Jamf Urls to connectivity errors
 #
 # In addition to the URL array there is also the option to import a text file of additional hosts
-# text fule must have the same strucutre as the urls below eg:
+# text file must have the same structure as the urls below eg:
 # www.apple.com,443,TCP,Apple Example
 # www.microsoft.com,443,TCP
 #

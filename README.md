@@ -1,5 +1,9 @@
-# Jamf-Environment-Test
-![Jet Logo](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/Jet_Icon.png)
+# No Longer Maintained
+Recommended to use [JamfCheck](https://marketplace.jamf.com/details/jamfcheck)
+![JamfCheckLogo](images/JamfCheck.png)
+
+## Jamf-Environment-Test
+![Jet Logo](images/Jet_Icon.png)
 
 Utility for testing an network environments for successful communication from Apple Devices to Apple and Jamf hosted services
 
@@ -9,7 +13,7 @@ It will report on current device proxy settings, and its connectivity to Apple u
 
 This application is designed to run on a macOS device only.
 
-It doesn't require any Administrator privledges, it will query a collection of urls and display some relevant device information
+It doesn't require any Administrator privileges, it will query a collection of urls and display some relevant device information
 
 The output report is a html file that will be automatically opened upon completion of the application run
 
@@ -19,13 +23,13 @@ Full app can be found [here](https://github.com/jamf/Jamf-Environment-Test/relea
 
 How to use Wiki can be found on the [Wiki](https://github.com/jamf/Jamf-Environment-Test/wiki)
 
-## Important
+### Important
 when downloading with Chrome you may see the following error 
 
-![Dangerous](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous.png)
+![Dangerous](images/dangerous.png)
 
 This is expected due to Google Chrome's security, to proceed with the download click the arrow and then Keep
 
-![Dangerous Keep](https://github.com/jamf/Jamf-Environment-Test/blob/master/images/dangerous_keep.png)
+![Dangerous Keep](images/dangerous_keep.png)
 
 _Note: this tool is open source and is not supported by the Jamf support team_
